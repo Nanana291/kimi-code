@@ -10,6 +10,8 @@
 
 import { createRequire } from 'node:module';
 
+import { isAndroid } from '../platform';
+
 import { loadNativePackage } from '#/native/native-require';
 
 declare const __KIMI_CODE_NATIVE_BUNDLE__: boolean | undefined;
@@ -31,10 +33,11 @@ const isNativeBundle =
 // available, skip the load attempt so headless environments don't pay
 // the binding cost just to fail later.
 const hasDisplay =
-  process.platform !== 'linux' || Boolean(process.env['DISPLAY'] ?? process.env['WAYLAND_DISPLAY']);
+  (process.platform !== 'linux' && !isAndroid()) ||
+  Boolean(process.env['DISPLAY'] ?? process.env['WAYLAND_DISPLAY']);
 
 const clipboard: ClipboardModule | null = (() => {
-  if (process.env['TERMUX_VERSION'] !== undefined || !hasDisplay) return null;
+  if (isAndroid() || !hasDisplay) return null;
   try {
     const bundledClipboard = loadNativePackage<ClipboardModule>('@mariozechner/clipboard');
     if (bundledClipboard !== null) return bundledClipboard;

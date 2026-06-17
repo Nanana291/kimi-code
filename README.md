@@ -13,7 +13,7 @@ Kimi Code CLI is an AI coding agent that runs in your terminal — it can read a
 
 Install with the official script. No Node.js required.
 
-- **macOS or Linux**:
+- **macOS, Linux or Android (Termux)**:
 
 ```sh
 curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash

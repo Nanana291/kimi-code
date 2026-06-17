@@ -17,6 +17,7 @@ import { pipeline } from 'node:stream/promises';
 
 import { KIMI_CODE_CDN_BASE } from '#/constant/app';
 import { getBinDir } from '#/utils/paths';
+import { isAndroid } from '#/utils/platform';
 
 const CANDIDATES = ['fd', 'fdfind'];
 const FD_BASE_URL = `${KIMI_CODE_CDN_BASE}/fd`;
@@ -87,7 +88,7 @@ export function getFdAssetName(plat = platform(), architecture = arch()): string
     if (architecture === 'x64') return 'fd-v10.3.0-x86_64-apple-darwin.tar.gz';
     return null;
   }
-  if (plat === 'linux') {
+  if (plat === 'linux' || isAndroid()) {
     if (architecture === 'arm64') return 'fd-v10.4.2-aarch64-unknown-linux-gnu.tar.gz';
     if (architecture === 'x64') return 'fd-v10.4.2-x86_64-unknown-linux-musl.tar.gz';
     return null;

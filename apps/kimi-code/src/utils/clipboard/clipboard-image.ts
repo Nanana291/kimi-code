@@ -24,6 +24,7 @@ import { basename, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parseImageMeta } from '#/utils/image/image-mime';
+import { isAndroid } from '#/utils/platform';
 
 import { clipboard, type ClipboardModule } from './clipboard-native';
 
@@ -470,7 +471,7 @@ export async function readClipboardMedia(options?: {
 
   // Termux on Android has no desktop clipboard; skip early rather than
   // churn through every fallback.
-  if (env['TERMUX_VERSION'] !== undefined) return null;
+  if (isAndroid(env)) return null;
 
   let image: ClipboardImage | null = null;
   if (platform === 'linux') {

@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
+import { isTermux } from '../platform';
+
 import { clipboard } from './clipboard-native';
 
 function runClipboardCommand(command: string, args: readonly string[], input: string): void {
@@ -21,10 +23,12 @@ async function copyWithPlatformCommand(text: string): Promise<void> {
       ? [{ command: 'pbcopy', args: [] as string[] }]
       : process.platform === 'win32'
         ? [{ command: 'clip.exe', args: [] as string[] }]
-        : [
-            { command: 'wl-copy', args: [] as string[] },
-            { command: 'xclip', args: ['-selection', 'clipboard'] },
-          ];
+        : isTermux()
+          ? [{ command: 'termux-clipboard-set', args: [] as string[] }]
+          : [
+              { command: 'wl-copy', args: [] as string[] },
+              { command: 'xclip', args: ['-selection', 'clipboard'] },
+            ];
 
   let lastError: unknown;
   for (const candidate of commands) {

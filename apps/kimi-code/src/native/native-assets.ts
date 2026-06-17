@@ -14,6 +14,7 @@ import { homedir } from 'node:os';
 import { dirname, join, win32 as pathWin32 } from 'node:path';
 
 import { KIMI_BUILD_INFO } from '#/cli/build-info';
+import { isAndroid } from '#/utils/platform';
 import { NATIVE_ASSET_MANIFEST_VERSION as MANIFEST_VERSION, buildManifestKey } from '../../scripts/native/manifest.mjs';
 
 export const NATIVE_ASSET_MANIFEST_VERSION = MANIFEST_VERSION;
@@ -76,7 +77,9 @@ function loadSeaModule(): NodeSeaModule | null {
 }
 
 function currentTarget(): string {
-  return KIMI_BUILD_INFO.buildTarget ?? `${process.platform}-${process.arch}`;
+  if (KIMI_BUILD_INFO.buildTarget) return KIMI_BUILD_INFO.buildTarget;
+  const platform = isAndroid() ? 'android' : process.platform;
+  return `${platform}-${process.arch}`;
 }
 
 export function nativeAssetManifestKey(target: string = currentTarget()): string {
@@ -144,6 +147,7 @@ export function getNativeCacheBase(options: NativeAssetOptions = {}): string {
   if (cacheDirEnv !== null) return cacheDirEnv;
 
   if (platform === 'darwin') return join(home, 'Library', 'Caches', 'kimi-code');
+  if (isAndroid()) return join(home, '.cache', 'kimi-code');
   if (platform === 'win32') {
     const localAppData = optionalEnvValue(env, 'LOCALAPPDATA');
     return localAppData !== null

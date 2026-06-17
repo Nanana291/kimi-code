@@ -8,9 +8,10 @@ import {
 } from '../../../scripts/native/native-deps.mjs';
 
 describe('SUPPORTED_TARGETS', () => {
-  it('contains the six published targets', () => {
+  it('contains the seven published targets', () => {
     expect([...SUPPORTED_TARGETS].toSorted()).toEqual(
       [
+        'android-arm64',
         'darwin-arm64',
         'darwin-x64',
         'linux-arm64',
@@ -36,6 +37,17 @@ describe('isSupportedTarget', () => {
 });
 
 describe('resolveTargetDeps', () => {
+  it('skips clipboard-target on android-arm64', () => {
+    const deps = resolveTargetDeps('android-arm64');
+    const ids = deps.map((d) => d.id);
+    expect(ids).toContain('clipboard-host');
+    expect(ids).not.toContain('clipboard-target');
+    expect(ids).toContain('koffi');
+
+    const koffi = deps.find((d) => d.id === 'koffi');
+    expect(koffi?.nativeFileRelatives).toEqual(['build/koffi/linux_arm64/koffi.node']);
+  });
+
   it('returns one descriptor per package for darwin-arm64', () => {
     const deps = resolveTargetDeps('darwin-arm64');
     const names = deps.map((d) => d.resolvedName);

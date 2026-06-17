@@ -10,6 +10,7 @@
  */
 
 export const SUPPORTED_TARGETS = Object.freeze([
+  'android-arm64',
   'darwin-arm64',
   'darwin-x64',
   'linux-arm64',
@@ -19,6 +20,7 @@ export const SUPPORTED_TARGETS = Object.freeze([
 ]);
 
 const clipboardSubpackageByTarget = Object.freeze({
+  'android-arm64': null, // Not supported on Android
   'darwin-arm64': '@mariozechner/clipboard-darwin-arm64',
   'darwin-x64': '@mariozechner/clipboard-darwin-x64',
   'linux-arm64': '@mariozechner/clipboard-linux-arm64-gnu',
@@ -28,6 +30,7 @@ const clipboardSubpackageByTarget = Object.freeze({
 });
 
 const koffiTripletByTarget = Object.freeze({
+  'android-arm64': 'linux_arm64', // Try linux_arm64 for Android ARM64
   'darwin-arm64': 'darwin_arm64',
   'darwin-x64': 'darwin_x64',
   'linux-arm64': 'linux_arm64',
@@ -67,6 +70,7 @@ export const nativeDeps = Object.freeze([
     name: (target) => clipboardSubpackageByTarget[target],
     collect: 'native-files',
     parent: 'clipboard-host',
+    skip: (target) => clipboardSubpackageByTarget[target] === null,
   },
   {
     id: 'pi-tui',
@@ -93,7 +97,7 @@ export function resolveTargetDeps(target) {
     throw new Error(`Unsupported native asset target: ${target}`);
   }
   return nativeDeps
-    .filter((d) => d.collect !== 'virtual')
+    .filter((d) => d.collect !== 'virtual' && !d.skip?.(target))
     .map((d) => ({
       ...d,
       resolvedName: d.name(target),
