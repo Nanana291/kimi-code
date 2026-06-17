@@ -12,7 +12,7 @@ Kimi Code CLI is an AI coding agent that runs in your terminal. It can read and 
 
 The recommended install path is the official script. It does not require Node.js to be installed first.
 
-- **macOS / Linux**:
+- **macOS / Linux / Android (Termux)**:
 
 ```sh
 curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
@@ -25,6 +25,8 @@ irm https://code.kimi.com/kimi-code/install.ps1 | iex
 ```
 
 > On Windows, install [Git for Windows](https://gitforwindows.org/) before first launch because Kimi Code CLI uses the bundled Git Bash as its shell environment. If Git Bash is installed in a custom location, set `KIMI_SHELL_PATH` to the absolute path of `bash.exe`.
+
+> On Android (Termux), it's recommended to install `termux-api` for better clipboard and URL opening support.
 
 Then run it with a new Terminal session:
 
