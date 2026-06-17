@@ -19,6 +19,8 @@ import { KIMI_CODE_CDN_BASE } from '#/constant/app';
 import { getBinDir } from '#/utils/paths';
 import { isAndroid } from '#/utils/platform';
 
+import { validateAndroidBinary } from './binary-validation';
+
 const CANDIDATES = ['fd', 'fdfind'];
 const FD_BASE_URL = `${KIMI_CODE_CDN_BASE}/fd`;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
@@ -70,6 +72,16 @@ function detectSystemFdPath(): string | null {
 function getManagedFdPath(): string | null {
   const binaryPath = getManagedFdBinaryPath();
   if (!existsSync(binaryPath)) return null;
+
+  // On Android, generic Linux binaries may exist but fail to run if not PIE.
+  if (isAndroid()) {
+    // We don't want to block startup with async I/O here if possible,
+    // but since we only check this once at startup and it's a small read,
+    // we can use a sync version or skip validation and let it fail.
+    // For now, let's keep it simple: if it's Android, we prefer system fd.
+    return null;
+  }
+
   try {
     const result = spawnSync(binaryPath, ['--version'], { stdio: 'ignore' });
     return result.status === 0 ? binaryPath : null;
@@ -102,6 +114,9 @@ export function getFdAssetName(plat = platform(), architecture = arch()): string
 }
 
 async function downloadFd(): Promise<string | null> {
+  if (isAndroid()) {
+    return null;
+  }
   const assetName = getFdAssetName();
   if (assetName === null) return null;
   const expectedSha256 = FD_ARCHIVE_SHA256[assetName];

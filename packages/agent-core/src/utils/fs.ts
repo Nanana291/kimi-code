@@ -17,7 +17,7 @@
 import { randomBytes } from 'node:crypto';
 import { closeSync, fsyncSync, openSync } from 'node:fs';
 import * as nodeFs from 'node:fs';
-import { open, rename, unlink } from 'node:fs/promises';
+import { copyFile, lstat, open, rename, stat, symlink, unlink } from 'node:fs/promises';
 import { dirname } from 'pathe';
 
 /**
@@ -100,6 +100,29 @@ export async function writeFileAtomicDurable(
         /* ignore */
       }
     }
+  }
+}
+
+/**
+ * Create a symlink at `path` pointing to `target`.
+ * Fall back to a file copy if symlink creation fails due to permissions
+ * (common on Android shared storage).
+ */
+export async function safeSymlink(target: string, path: string): Promise<void> {
+  try {
+    await symlink(target, path);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'EACCES' || code === 'EPERM') {
+      // Fallback: copy the file instead of symlinking.
+      // Note: this only works for files, not directories.
+      const targetStat = await lstat(target).catch(() => null);
+      if (targetStat?.isFile()) {
+        await copyFile(target, path);
+        return;
+      }
+    }
+    throw error;
   }
 }
 

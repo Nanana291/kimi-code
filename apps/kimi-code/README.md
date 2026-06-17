@@ -27,6 +27,8 @@ irm https://code.kimi.com/kimi-code/install.ps1 | iex
 > On Windows, install [Git for Windows](https://gitforwindows.org/) before first launch because Kimi Code CLI uses the bundled Git Bash as its shell environment. If Git Bash is installed in a custom location, set `KIMI_SHELL_PATH` to the absolute path of `bash.exe`.
 
 > On Android (Termux), it's recommended to install `termux-api` for better clipboard and URL opening support.
+>
+> **Note:** For best results on Android, install Kimi Code in the Termux home directory (`/data/data/com.termux/files/home`). Installing on shared storage (`/sdcard` or `/storage/emulated/0`) may fail due to limited symlink and permission support.
 
 Then run it with a new Terminal session:
 

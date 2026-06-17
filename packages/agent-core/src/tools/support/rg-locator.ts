@@ -111,6 +111,16 @@ async function downloadRgWithLock(shareDir: string): Promise<RgResolution> {
     try {
       const existing = await findExistingRg(shareDir);
       if (existing) return existing;
+
+      // Avoid downloading generic Linux binaries on Android as they likely
+      // lack PIE support or use incompatible libc.
+      if (isAndroid()) {
+        throw new Error(
+          'ripgrep (rg) is not found in the system PATH and auto-download is disabled on Android. ' +
+            'Please install it manually using your package manager (e.g., `pkg install ripgrep` in Termux).',
+        );
+      }
+
       const binPath = await downloadAndInstallRg(shareDir);
       return { path: binPath, source: 'share-bin-downloaded' };
     } finally {
@@ -118,6 +128,16 @@ async function downloadRgWithLock(shareDir: string): Promise<RgResolution> {
     }
   })();
   return downloadPromise;
+}
+
+function isAndroid(): boolean {
+  return (
+    process.platform === 'android' ||
+    process.env['ANDROID_ROOT'] !== undefined ||
+    process.env['ANDROID_DATA'] !== undefined ||
+    existsSync('/system/bin/app_process') ||
+    existsSync('/data/data/com.termux')
+  );
 }
 
 function rgBinaryName(): string {

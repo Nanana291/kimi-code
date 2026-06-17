@@ -326,6 +326,17 @@ export async function renameInPlace(shimPath, target) {
     return { success: true };
   } catch (err) {
     const code = err && typeof err === 'object' ? err.code : undefined;
+    if (code === 'EACCES' || code === 'EPERM') {
+      // Fallback for Android shared storage: copy instead of rename
+      // if rename fails with permission error.
+      try {
+        await fs.copyFile(shimPath, target);
+        await fs.unlink(shimPath);
+        return { success: true };
+      } catch (copyErr) {
+        return { success: false, code: copyErr.code, message: copyErr.message };
+      }
+    }
     const message = err instanceof Error ? err.message : String(err);
     return { success: false, code, message };
   }

@@ -29,6 +29,7 @@ import {
   type PassiveUpdateDecision,
 } from './rollout';
 import { detectInstallSource } from './source';
+import { isAndroid } from '#/utils/platform';
 import {
   NPM_PACKAGE_NAME,
   type InstallSource,
@@ -87,6 +88,11 @@ export function installCommandFor(
 }
 
 export function canAutoInstall(source: InstallSource, platform: NodeJS.Platform): boolean {
+  // Avoid auto-installing native binaries on Android via shell script
+  // because the standard Linux script may not be compatible with Termux.
+  if (source === 'native' && isAndroid()) {
+    return false;
+  }
   switch (source) {
     case 'npm-global':
     case 'pnpm-global':
@@ -148,22 +154,27 @@ export function renderManualUpdateMessage(
   installCommand: string,
 ): string {
   let sourceDesc: string;
-  switch (source) {
-    case 'npm-global':
-    case 'pnpm-global':
-    case 'yarn-global':
-    case 'bun-global':
-      sourceDesc = source;
-      break;
-    case 'homebrew':
-      sourceDesc = 'homebrew';
-      break;
-    case 'native':
-      sourceDesc = 'native (windows). Auto-update is not supported on this platform.';
-      break;
-    case 'unsupported':
-      sourceDesc = 'unsupported package manager or layout.';
-      break;
+  if (source === 'native' && isAndroid()) {
+    sourceDesc = 'native (Android/Termux). Auto-update is not supported; please update via npm.';
+    installCommand = `npm install -g ${NPM_PACKAGE_NAME}`;
+  } else {
+    switch (source) {
+      case 'npm-global':
+      case 'pnpm-global':
+      case 'yarn-global':
+      case 'bun-global':
+        sourceDesc = source;
+        break;
+      case 'homebrew':
+        sourceDesc = 'homebrew';
+        break;
+      case 'native':
+        sourceDesc = 'native (windows). Auto-update is not supported on this platform.';
+        break;
+      case 'unsupported':
+        sourceDesc = 'unsupported package manager or layout.';
+        break;
+    }
   }
   return (
     `A newer version of ${NPM_PACKAGE_NAME} is available ` +
